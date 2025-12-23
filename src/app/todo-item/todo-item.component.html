@@ -1,0 +1,32 @@
+<li
+  class="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:border-slate-300 hover:shadow"
+  [class.opacity-70]="todo().done"
+>
+  <label class="flex flex-1 items-center gap-3">
+    <input
+      type="checkbox"
+      class="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-4 focus:ring-indigo-100"
+      [checked]="todo().done"
+      (change)="onToggle()"
+    />
+
+    <span
+      class="text-sm font-medium text-slate-900 transition"
+      [class.line-through]="todo().done"
+      [class.text-slate-400]="todo().done"
+    >
+      {{ todo().title }}
+    </span>
+  </label>
+
+  <button
+    type="button"
+    (click)="onRemove()"
+    class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-200"
+    aria-label="Remove todo"
+    title="Remove"
+  >
+    <span class="hidden sm:inline">Remove</span>
+    <span class="text-base leading-none">✕</span>
+  </button>
+</li>
