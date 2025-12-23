@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, effect, signal } from '@angular/core';
 import { Todo } from '../interface/todo.interface';
 import { TodoItemComponent } from '../todo-item/todo-item.component';
 
@@ -9,13 +9,27 @@ import { TodoItemComponent } from '../todo-item/todo-item.component';
   styleUrl: './todo-list.component.css',
 })
 export class TodoListComponent {
-  // Signal holding the list of todos.
+  private readonly STORAGE_KEY = 'todos_v1';
+
   todos = signal<Todo[]>([
     { id: 1, title: 'take out trash', done: false },
     { id: 2, title: 'study for exams', done: false },
   ]);
 
   newTitle = signal('');
+
+  constructor() {
+    const saved = localStorage.getItem(this.STORAGE_KEY);
+
+    if (saved) {
+      this.todos.set(JSON.parse(saved));
+    }
+
+    effect(() => {
+      const currentTodos = this.todos();
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(currentTodos));
+    });
+  }
 
   addTodo(title: string) {
     const trimmed = title.trim();
