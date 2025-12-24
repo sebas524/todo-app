@@ -1,4 +1,4 @@
-import { Component, effect, signal } from '@angular/core';
+import { Component, computed, effect, signal } from '@angular/core';
 import { Todo } from '../interface/todo.interface';
 import { TodoItemComponent } from '../todo-item/todo-item.component';
 
@@ -87,4 +87,12 @@ export class TodoListComponent {
       });
     });
   }
+
+  sortedTodos = computed(() => {
+    const list = this.todos();
+
+    return [...list].sort((a, b) => {
+      return Number(a.done) - Number(b.done);
+    });
+  });
 }

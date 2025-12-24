@@ -46,7 +46,7 @@
 
       <!-- List / Empty state -->
       <div class="p-4">
-        @if (todos().length === 0) {
+        @if (sortedTodos().length === 0) {
         <div
           class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center"
         >
@@ -57,7 +57,7 @@
         </div>
         } @else {
         <ul class="space-y-2">
-          @for (todo of todos(); track todo.id) {
+          @for (todo of sortedTodos(); track todo.id) {
           <app-todo-item
             [todo]="todo"
             (removed)="handleRemove($event)"
