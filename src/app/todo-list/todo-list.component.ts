@@ -1,5 +1,5 @@
 import { Component, computed, effect, signal } from '@angular/core';
-import { Todo } from '../interface/todo.interface';
+import { Priority, Todo } from '../interface/todo.interface';
 import { TodoItemComponent } from '../todo-item/todo-item.component';
 
 @Component({
@@ -11,9 +11,27 @@ import { TodoItemComponent } from '../todo-item/todo-item.component';
 export class TodoListComponent {
   private readonly STORAGE_KEY = 'todos_v1';
 
+  private readonly priorityRank: Record<'high' | 'medium' | 'low', number> = {
+    high: 0,
+    medium: 1,
+    low: 2,
+  };
+
   todos = signal<Todo[]>([
-    { id: 1, title: 'take out trash', done: false, completedAt: null },
-    { id: 2, title: 'study for exams', done: false, completedAt: null },
+    {
+      id: 1,
+      title: 'take out trash',
+      done: false,
+      completedAt: null,
+      priority: 'medium',
+    },
+    {
+      id: 2,
+      title: 'study for exams',
+      done: false,
+      completedAt: null,
+      priority: 'medium',
+    },
   ]);
 
   newTitle = signal('');
@@ -49,7 +67,13 @@ export class TodoListComponent {
     this.todos.update((prevTodos) => {
       return [
         ...prevTodos,
-        { id: nextId, title: trimmed, done: false, completedAt: null },
+        {
+          id: nextId,
+          title: trimmed,
+          done: false,
+          completedAt: null,
+          priority: 'medium',
+        },
       ];
     });
 
@@ -95,8 +119,11 @@ export class TodoListComponent {
   sortedTodos = computed(() => {
     const list = this.todos();
 
-    const active = list.filter((t) => !t.done);
-
+    const active = list
+      .filter((t) => !t.done)
+      .sort(
+        (a, b) => this.priorityRank[a.priority] - this.priorityRank[b.priority]
+      );
     // done items ordered by completion time (oldest first, newest last)
     const done = list
       .filter((t) => t.done)
@@ -104,4 +131,12 @@ export class TodoListComponent {
 
     return [...active, ...done];
   });
+
+  handlePriorityChange(payload: { id: number; priority: Priority }) {
+    this.todos.update((todos) =>
+      todos.map((todo) =>
+        todo.id === payload.id ? { ...todo, priority: payload.priority } : todo
+      )
+    );
+  }
 }

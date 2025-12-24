@@ -1,6 +1,13 @@
 <li
   class="group flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:border-slate-300 hover:shadow"
   [class.opacity-70]="todo().done"
+  [class.border-l-4]="!todo().done"
+  [class.border-l-red-400]="!todo().done && todo().priority === 'high'"
+  [class.border-l-amber-300]="!todo().done && todo().priority === 'medium'"
+  [class.border-l-sky-300]="!todo().done && todo().priority === 'low'"
+  [class.hover:bg-red-50]="!todo().done && todo().priority === 'high'"
+  [class.hover:bg-amber-50]="!todo().done && todo().priority === 'medium'"
+  [class.hover:bg-sky-50]="!todo().done && todo().priority === 'low'"
 >
   <label class="flex flex-1 items-center gap-3">
     <input
@@ -32,6 +39,20 @@
   </label>
 
   <div class="flex items-center gap-2">
+    <select
+      class="rounded-lg border border-slate-200 bg-white px-2 py-2 text-sm text-slate-700 shadow-sm outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+      [value]="todo().priority"
+      (change)="onPriorityChange(editPriority.value)"
+      [disabled]="isEditing()"
+      aria-label="Todo priority"
+      title="Priority"
+      #editPriority
+    >
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+    </select>
+
     <button
       type="button"
       (click)="isEditing() ? saveEdit() : startEdit()"

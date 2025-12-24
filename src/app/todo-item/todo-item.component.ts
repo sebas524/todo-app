@@ -5,9 +5,8 @@ import {
   output,
   signal,
   viewChild,
-  ViewChild,
 } from '@angular/core';
-import { Todo } from '../interface/todo.interface';
+import { Priority, Todo } from '../interface/todo.interface';
 
 @Component({
   selector: 'app-todo-item',
@@ -22,6 +21,7 @@ export class TodoItemComponent {
   toggled = output<number>();
   removed = output<number>();
   edited = output<{ id: number; title: string }>();
+  priorityChanged = output<{ id: number; priority: Priority }>();
 
   isEditing = signal(false);
   draftTitle = '';
@@ -57,5 +57,12 @@ export class TodoItemComponent {
   cancelEdit() {
     this.isEditing.set(false);
     this.draftTitle = '';
+  }
+
+  onPriorityChange(value: string) {
+    // runtime guard (keeps it safe)
+    if (value === 'high' || value === 'medium' || value === 'low') {
+      this.priorityChanged.emit({ id: this.todo().id, priority: value });
+    }
   }
 }
