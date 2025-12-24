@@ -12,8 +12,8 @@ export class TodoListComponent {
   private readonly STORAGE_KEY = 'todos_v1';
 
   todos = signal<Todo[]>([
-    { id: 1, title: 'take out trash', done: false },
-    { id: 2, title: 'study for exams', done: false },
+    { id: 1, title: 'take out trash', done: false, completedAt: null },
+    { id: 2, title: 'study for exams', done: false, completedAt: null },
   ]);
 
   newTitle = signal('');
@@ -47,7 +47,10 @@ export class TodoListComponent {
     // * Add new todo:
 
     this.todos.update((prevTodos) => {
-      return [...prevTodos, { id: nextId, title: trimmed, done: false }];
+      return [
+        ...prevTodos,
+        { id: nextId, title: trimmed, done: false, completedAt: null },
+      ];
     });
 
     console.log('value of newTitle', this.newTitle());
@@ -64,18 +67,19 @@ export class TodoListComponent {
     });
   }
   handleToggle(id: number) {
-    this.todos.update((todos) => {
-      return todos.map((todo) => {
-        if (todo.id === id) {
-          const updatedTodo = { ...todo, done: !todo.done };
-          // console.log('Before:', todo);
-          // console.log('After:', updatedTodo);
+    this.todos.update((todos) =>
+      todos.map((todo) => {
+        if (todo.id !== id) return todo;
 
-          return updatedTodo;
-        }
-        return todo;
-      });
-    });
+        const nextDone = !todo.done;
+
+        return {
+          ...todo,
+          done: nextDone,
+          completedAt: nextDone ? Date.now() : null,
+        };
+      })
+    );
   }
 
   handleEdit(payload: { id: number; title: string }) {
@@ -91,8 +95,13 @@ export class TodoListComponent {
   sortedTodos = computed(() => {
     const list = this.todos();
 
-    return [...list].sort((a, b) => {
-      return Number(a.done) - Number(b.done);
-    });
+    const active = list.filter((t) => !t.done);
+
+    // done items ordered by completion time (oldest first, newest last)
+    const done = list
+      .filter((t) => t.done)
+      .sort((a, b) => (a.completedAt ?? 0) - (b.completedAt ?? 0));
+
+    return [...active, ...done];
   });
 }
