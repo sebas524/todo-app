@@ -77,4 +77,14 @@ export class TodoListComponent {
       });
     });
   }
+
+  handleEdit(payload: { id: number; title: string }) {
+    this.todos.update((todos) => {
+      return todos.map((todo) => {
+        return todo.id === payload.id
+          ? { ...todo, title: payload.title }
+          : todo;
+      });
+    });
+  }
 }

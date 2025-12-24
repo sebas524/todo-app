@@ -10,6 +10,7 @@
       (change)="onToggle()"
     />
 
+    @if (!isEditing()) {
     <span
       class="text-sm font-medium text-slate-900 transition"
       [class.line-through]="todo().done"
@@ -17,16 +18,40 @@
     >
       {{ todo().title }}
     </span>
+    } @else {
+    <input
+      #editInput
+      type="text"
+      class="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+      [value]="draftTitle"
+      (input)="draftTitle = editInput.value"
+      (keyup.enter)="saveEdit()"
+      (keyup.escape)="cancelEdit()"
+    />
+    }
   </label>
 
-  <button
-    type="button"
-    (click)="onRemove()"
-    class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-200"
-    aria-label="Remove todo"
-    title="Remove"
-  >
-    <span class="hidden sm:inline">Remove</span>
-    <span class="text-base leading-none">✕</span>
-  </button>
+  <div class="flex items-center gap-2">
+    <button
+      type="button"
+      (click)="isEditing() ? saveEdit() : startEdit()"
+      class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-200"
+      [attr.aria-label]="isEditing() ? 'Save todo' : 'Edit todo'"
+      [attr.title]="isEditing() ? 'Save' : 'Edit'"
+    >
+      <span class="hidden sm:inline">{{ isEditing() ? "Save" : "Edit" }}</span>
+      <span class="text-base leading-none">{{ isEditing() ? "✓" : "✎" }}</span>
+    </button>
+
+    <button
+      type="button"
+      (click)="onRemove()"
+      class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-200"
+      aria-label="Remove todo"
+      title="Remove"
+    >
+      <span class="hidden sm:inline">Remove</span>
+      <span class="text-base leading-none">✕</span>
+    </button>
+  </div>
 </li>

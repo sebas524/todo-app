@@ -1,4 +1,12 @@
-import { Component, input, output } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  input,
+  output,
+  signal,
+  viewChild,
+  ViewChild,
+} from '@angular/core';
 import { Todo } from '../interface/todo.interface';
 
 @Component({
@@ -9,9 +17,14 @@ import { Todo } from '../interface/todo.interface';
 })
 export class TodoItemComponent {
   todo = input.required<Todo>();
+  editInput = viewChild<ElementRef<HTMLInputElement>>('editInput');
 
   toggled = output<number>();
   removed = output<number>();
+  edited = output<{ id: number; title: string }>();
+
+  isEditing = signal(false);
+  draftTitle = '';
 
   onToggle() {
     this.toggled.emit(this.todo()!.id);
@@ -19,5 +32,30 @@ export class TodoItemComponent {
 
   onRemove() {
     this.removed.emit(this.todo()!.id);
+  }
+
+  startEdit() {
+    this.isEditing.set(true);
+    this.draftTitle = this.todo().title;
+
+    setTimeout(() => {
+      const el = this.editInput()?.nativeElement;
+      el?.focus();
+      el?.select();
+    }, 0);
+  }
+  saveEdit() {
+    const trimmed = this.draftTitle.trim();
+    if (!trimmed) {
+      this.cancelEdit();
+      return;
+    }
+
+    this.edited.emit({ id: this.todo().id, title: trimmed });
+    this.isEditing.set(false);
+  }
+  cancelEdit() {
+    this.isEditing.set(false);
+    this.draftTitle = '';
   }
 }
