@@ -1,11 +1,10 @@
-import { computed, effect, Injectable, signal } from '@angular/core';
-import { Priority, Todo } from '../interface/todo.interface';
+import { Priority, Todo, TodoList } from '../interface/todo.interface';
+
+import { Injectable, computed, effect, signal } from '@angular/core';
 
 export type TodoFilter = 'all' | 'active' | 'done';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class TodoStoreService {
   private readonly STORAGE_KEY = 'todos_v1';
 
@@ -14,25 +13,50 @@ export class TodoStoreService {
     medium: 1,
     low: 2,
   };
-  // ✅ State (source of truth)
-  readonly todos = signal<Todo[]>([
+
+  // ✅ MULTI-LIST STATE
+  readonly lists = signal<TodoList[]>([
     {
-      id: 1,
-      title: 'take out trash',
-      done: false,
-      completedAt: null,
-      priority: 'medium',
-    },
-    {
-      id: 2,
-      title: 'study for exams',
-      done: false,
-      completedAt: null,
-      priority: 'medium',
+      id: 'default',
+      name: 'Default',
+      todos: [
+        {
+          id: 'effefeffefe',
+          title: 'take out trash',
+          done: false,
+          completedAt: null,
+          priority: 'medium',
+        },
+        {
+          id: 'ekdjfjs',
+          title: 'study for exams',
+          done: false,
+          completedAt: null,
+          priority: 'medium',
+        },
+      ],
     },
   ]);
 
-  // ✅ Derived state (read-only view)
+  readonly selectedListId = signal<string>('default');
+
+  // ✅ FILTER STATE
+  readonly filter = signal<TodoFilter>('all');
+  setFilter(filter: TodoFilter) {
+    this.filter.set(filter);
+  }
+
+  // ✅ SELECTED LIST + TODOS
+  readonly selectedList = computed(() => {
+    const id = this.selectedListId();
+    return this.lists().find((l) => l.id === id) ?? null;
+  });
+
+  readonly todos = computed<Todo[]>(() => {
+    return this.selectedList()?.todos ?? [];
+  });
+
+  // ✅ SORTED + FILTERED VIEW
   readonly sortedTodos = computed(() => {
     const list = this.todos();
 
@@ -58,42 +82,93 @@ export class TodoStoreService {
     return list;
   });
 
-  readonly filter = signal<TodoFilter>('all');
-
   constructor() {
-    // ✅ Load from storage (safe parse)
+    // ✅ LOAD from localStorage (with migration)
     const saved = localStorage.getItem(this.STORAGE_KEY);
+
     if (saved) {
       try {
-        this.todos.set(JSON.parse(saved));
-      } catch {}
+        const parsed = JSON.parse(saved);
+
+        // NEW format: TodoList[]
+        if (
+          Array.isArray(parsed) &&
+          parsed.length > 0 &&
+          'todos' in parsed[0]
+        ) {
+          const lists = parsed as TodoList[];
+          this.lists.set(lists);
+
+          // ensure selectedListId valid
+          const exists = lists.some((l) => l.id === this.selectedListId());
+          if (!exists) this.selectedListId.set(lists[0].id);
+        }
+        // OLD format: Todo[]
+        else if (
+          Array.isArray(parsed) &&
+          (parsed.length === 0 || (parsed.length > 0 && 'title' in parsed[0]))
+        ) {
+          const legacyTodos = parsed as Todo[];
+
+          this.lists.set([
+            {
+              id: 'default',
+              name: 'Default',
+              todos: legacyTodos,
+            },
+          ]);
+          this.selectedListId.set('default');
+        }
+      } catch {
+        // ignore corrupted storage
+      }
     }
 
-    // ✅ Persist whenever todos changes
+    // ✅ SAVE whenever lists changes
     effect(() => {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.todos()));
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.lists()));
+    });
+
+    // ✅ extra safety: if selectedListId points nowhere, fix it
+    effect(() => {
+      const lists = this.lists();
+      const selected = this.selectedListId();
+      if (lists.length > 0 && !lists.some((l) => l.id === selected)) {
+        this.selectedListId.set(lists[0].id);
+      }
     });
   }
 
-  setFilter(filter: TodoFilter) {
-    this.filter.set(filter);
+  // ✅ HELPER: update todos of selected list
+  private updateSelectedListTodos(updater: (todos: Todo[]) => Todo[]) {
+    const selectedId = this.selectedListId();
+
+    this.lists.update((lists) =>
+      lists.map((list) =>
+        list.id === selectedId
+          ? { ...list, todos: updater(list.todos ?? []) }
+          : list
+      )
+    );
   }
 
-  // ✅ Actions (the only way UI should mutate state)
-
+  // ✅ ACTIONS (same as before, now scoped to selected list)
   addTodo(title: string) {
     const trimmed = title.trim();
     if (!trimmed) return;
 
-    const nextId = this.todos().length
-      ? Math.max(...this.todos().map((t) => t.id)) + 1
-      : 1;
+    const normalized =
+      trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 
-    this.todos.update((prev) => [
+    const currentTodos = this.todos();
+
+    const id = crypto.randomUUID();
+
+    this.updateSelectedListTodos((prev) => [
       ...prev,
       {
-        id: nextId,
-        title: trimmed,
+        id: id,
+        title: normalized,
         done: false,
         completedAt: null,
         priority: 'medium',
@@ -101,12 +176,12 @@ export class TodoStoreService {
     ]);
   }
 
-  removeTodo(id: number) {
-    this.todos.update((prev) => prev.filter((t) => t.id !== id));
+  removeTodo(id: string) {
+    this.updateSelectedListTodos((prev) => prev.filter((t) => t.id !== id));
   }
 
-  toggleTodo(id: number) {
-    this.todos.update((prev) =>
+  toggleTodo(id: string) {
+    this.updateSelectedListTodos((prev) =>
       prev.map((t) => {
         if (t.id !== id) return t;
         const nextDone = !t.done;
@@ -119,19 +194,76 @@ export class TodoStoreService {
     );
   }
 
-  editTodo(payload: { id: number; title: string }) {
-    this.todos.update((prev) =>
+  editTodo(payload: { id: string; title: string }) {
+    this.updateSelectedListTodos((prev) =>
       prev.map((t) =>
         t.id === payload.id ? { ...t, title: payload.title } : t
       )
     );
   }
 
-  changePriority(payload: { id: number; priority: Priority }) {
-    this.todos.update((prev) =>
+  changePriority(payload: { id: string; priority: Priority }) {
+    this.updateSelectedListTodos((prev) =>
       prev.map((t) =>
         t.id === payload.id ? { ...t, priority: payload.priority } : t
       )
     );
+  }
+
+  // * lists logic:
+
+  createList(name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    const normalized =
+      trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+
+    const id = crypto.randomUUID();
+
+    this.lists.update((prev) => [
+      ...prev,
+      {
+        id,
+        name: normalized,
+        todos: [],
+      },
+    ]);
+
+    // auto-select the new list (nice UX)
+    this.selectedListId.set(id);
+
+    // optional: reset filter when switching lists
+    this.filter.set('all');
+  }
+
+  selectList(id: string) {
+    // only select if it exists
+    const exists = this.lists().some((l) => l.id === id);
+    if (!exists) return;
+
+    this.selectedListId.set(id);
+
+    // optional: reset filter when switching lists
+    this.filter.set('all');
+  }
+
+  deleteList(id: string) {
+    const lists = this.lists();
+
+    // ❌ Do not allow deleting the last remaining list
+    if (lists.length <= 1) return;
+
+    const remaining = lists.filter((l) => l.id !== id);
+
+    this.lists.set(remaining);
+
+    // If we deleted the selected list, select another one
+    if (this.selectedListId() === id) {
+      this.selectedListId.set(remaining[0].id);
+    }
+
+    // Optional: reset filter
+    this.filter.set('all');
   }
 }

@@ -3,10 +3,11 @@
     <!-- Header -->
     <div class="mb-6">
       <h2 class="text-3xl font-bold tracking-tight text-slate-900">
-        Todo List
+        {{ selectedList()?.name ?? "Todo List" | titlecase }}
       </h2>
+
       <p class="mt-2 text-sm text-slate-600">
-        Angular 19 + Signals • Keep it simple, keep it moving.
+        Todo App • Keep it simple, keep it moving.
       </p>
     </div>
 
@@ -42,6 +43,63 @@
         >
           Add
         </button>
+      </div>
+
+      <!-- Lists bar -->
+      <div
+        class="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <!-- Left: Select + delete -->
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-semibold text-slate-700">Selected:</span>
+
+          <select
+            class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            [value]="selectedListId()"
+            (change)="selectList(listSelect.value)"
+            #listSelect
+            aria-label="Select todo list"
+          >
+            @for (list of lists(); track list.id) {
+            <option [value]="list.id">{{ list.name }}</option>
+            }
+          </select>
+
+          <button
+            type="button"
+            class="rounded-lg px-2 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
+            [disabled]="lists().length <= 1"
+            title="Delete list"
+            aria-label="Delete list"
+            (click)="
+              confirm('Delete this list and all its todos?') &&
+                deleteList(selectedListId())
+            "
+          >
+            🗑
+          </button>
+        </div>
+
+        <!-- Right: Create list -->
+        <div class="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="New list name…"
+            class="w-full max-w-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            #newListName
+            (keyup.enter)="
+              createList(newListName.value); newListName.value = ''
+            "
+          />
+
+          <button
+            type="button"
+            class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200 cursor-pointer"
+            (click)="createList(newListName.value); newListName.value = ''"
+          >
+            Create
+          </button>
+        </div>
       </div>
 
       <!-- Filters -->

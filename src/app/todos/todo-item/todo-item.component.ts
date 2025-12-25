@@ -18,10 +18,10 @@ export class TodoItemComponent {
   todo = input.required<Todo>();
   editInput = viewChild<ElementRef<HTMLInputElement>>('editInput');
 
-  toggled = output<number>();
-  removed = output<number>();
-  edited = output<{ id: number; title: string }>();
-  priorityChanged = output<{ id: number; priority: Priority }>();
+  toggled = output<string>();
+  removed = output<string>();
+  edited = output<{ id: string; title: string }>();
+  priorityChanged = output<{ id: string; priority: Priority }>();
 
   isEditing = signal(false);
   draftTitle = '';
