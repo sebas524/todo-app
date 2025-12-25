@@ -14,7 +14,7 @@ export class TodoListComponent {
 
   readonly filteredTodos = this.store.filteredTodos;
 
-  readonly filter = this.store.filter; // so template can read current filter
+  readonly filter = this.store.filter;
 
   setFilter(f: 'all' | 'active' | 'done') {
     this.store.setFilter(f);
