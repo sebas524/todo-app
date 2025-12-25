@@ -38,15 +38,65 @@
         <button
           type="button"
           (click)="addTodo(txtTitle.value); txtTitle.value = ''"
-          class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-indigo-200"
+          class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-indigo-200 cursor-pointer"
         >
           Add
         </button>
       </div>
 
+      <!-- Filters -->
+      <div
+        class="flex items-center justify-between border-b border-slate-200 px-4 py-3"
+      >
+        <div class="flex gap-2">
+          <button
+            type="button"
+            (click)="setFilter('all')"
+            class="rounded-lg px-3 py-1.5 text-sm font-semibold transition cursor-pointer"
+            [class.bg-slate-900]="filter() === 'all'"
+            [class.text-white]="filter() === 'all'"
+            [class.text-slate-700]="filter() !== 'all'"
+            [class.hover:bg-slate-100]="filter() !== 'all'"
+          >
+            All
+          </button>
+
+          <button
+            type="button"
+            (click)="setFilter('active')"
+            class="rounded-lg px-3 py-1.5 text-sm font-semibold transition cursor-pointer"
+            [class.bg-slate-900]="filter() === 'active'"
+            [class.text-white]="filter() === 'active'"
+            [class.text-slate-700]="filter() !== 'active'"
+            [class.hover:bg-slate-100]="filter() !== 'active'"
+          >
+            Active
+          </button>
+
+          <button
+            type="button"
+            (click)="setFilter('done')"
+            class="rounded-lg px-3 py-1.5 text-sm font-semibold transition cursor-pointer"
+            [class.bg-slate-900]="filter() === 'done'"
+            [class.text-white]="filter() === 'done'"
+            [class.text-slate-700]="filter() !== 'done'"
+            [class.hover:bg-slate-100]="filter() !== 'done'"
+          >
+            Done
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-500">
+          Showing
+          <span class="font-medium text-slate-700">{{
+            filteredTodos().length
+          }}</span>
+        </p>
+      </div>
+
       <!-- List / Empty state -->
       <div class="p-4">
-        @if (sortedTodos().length === 0) {
+        @if (filteredTodos().length === 0) {
         <div
           class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center"
         >
@@ -57,7 +107,7 @@
         </div>
         } @else {
         <ul class="space-y-2">
-          @for (todo of sortedTodos(); track todo.id) {
+          @for (todo of filteredTodos(); track todo.id) {
           <app-todo-item
             [todo]="todo"
             (removed)="handleRemove($event)"

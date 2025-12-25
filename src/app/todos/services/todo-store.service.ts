@@ -1,11 +1,14 @@
 import { computed, effect, Injectable, signal } from '@angular/core';
 import { Priority, Todo } from '../interface/todo.interface';
 
+export type TodoFilter = 'all' | 'active' | 'done';
+
 @Injectable({
   providedIn: 'root',
 })
 export class TodoStoreService {
   private readonly STORAGE_KEY = 'todos_v1';
+
   private readonly priorityRank: Record<'high' | 'medium' | 'low', number> = {
     high: 0,
     medium: 1,
@@ -46,6 +49,17 @@ export class TodoStoreService {
     return [...active, ...done];
   });
 
+  readonly filteredTodos = computed(() => {
+    const filter = this.filter();
+    const list = this.sortedTodos();
+
+    if (filter === 'active') return list.filter((t) => !t.done);
+    if (filter === 'done') return list.filter((t) => t.done);
+    return list;
+  });
+
+  readonly filter = signal<TodoFilter>('all');
+
   constructor() {
     // ✅ Load from storage (safe parse)
     const saved = localStorage.getItem(this.STORAGE_KEY);
@@ -59,6 +73,10 @@ export class TodoStoreService {
     effect(() => {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.todos()));
     });
+  }
+
+  setFilter(filter: TodoFilter) {
+    this.filter.set(filter);
   }
 
   // ✅ Actions (the only way UI should mutate state)

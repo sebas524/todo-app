@@ -1,5 +1,5 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
-import { Priority, Todo } from '../interface/todo.interface';
+import { Component, inject } from '@angular/core';
+import { Priority } from '../interface/todo.interface';
 import { TodoItemComponent } from '../todo-item/todo-item.component';
 import { TodoStoreService } from '../services/todo-store.service';
 
@@ -12,8 +12,13 @@ import { TodoStoreService } from '../services/todo-store.service';
 export class TodoListComponent {
   private readonly store = inject(TodoStoreService);
 
-  // expose derived list to template (same name your template uses)
-  readonly sortedTodos = this.store.sortedTodos;
+  readonly filteredTodos = this.store.filteredTodos;
+
+  readonly filter = this.store.filter; // so template can read current filter
+
+  setFilter(f: 'all' | 'active' | 'done') {
+    this.store.setFilter(f);
+  }
 
   addTodo(title: string) {
     this.store.addTodo(title);
