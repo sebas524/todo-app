@@ -25,8 +25,18 @@ export class TodoListComponent {
     this.store.selectList(id);
   }
 
+  // createList(name: string) {
+  //   this.store.createList(name);
+  // }
+
   createList(name: string) {
-    this.store.createList(name);
+    const id = this.store.createList(name);
+    if (!id) return;
+
+    // ✅ wait one tick so the new <option> exists, then select it
+    setTimeout(() => {
+      this.store.selectList(id);
+    }, 0);
   }
 
   deleteList(id: string) {

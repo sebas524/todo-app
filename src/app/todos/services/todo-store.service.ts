@@ -230,11 +230,10 @@ export class TodoStoreService {
       },
     ]);
 
-    // auto-select the new list (nice UX)
-    this.selectedListId.set(id);
-
-    // optional: reset filter when switching lists
+    // ✅ DON'T select here (we'll do it after the DOM updates)
     this.filter.set('all');
+
+    return id;
   }
 
   selectList(id: string) {
