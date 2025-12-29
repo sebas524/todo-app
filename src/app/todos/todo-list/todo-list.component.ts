@@ -3,10 +3,11 @@ import { Priority } from '../interface/todo.interface';
 import { TodoItemComponent } from '../todo-item/todo-item.component';
 import { TodoStoreService } from '../services/todo-store.service';
 import { TitleCasePipe } from '@angular/common';
+import { InputBarWithButtonComponent } from '../components/input-bar-with-button/input-bar-with-button.component';
 
 @Component({
   selector: 'app-todo-list',
-  imports: [TodoItemComponent, TitleCasePipe],
+  imports: [TodoItemComponent, TitleCasePipe, InputBarWithButtonComponent],
   templateUrl: './todo-list.component.html',
   styleUrl: './todo-list.component.css',
 })

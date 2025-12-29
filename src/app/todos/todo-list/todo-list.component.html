@@ -3,7 +3,10 @@
     <!-- Header -->
     <div class="mb-6">
       <h2 class="text-3xl font-bold tracking-tight text-slate-900">
-        {{ selectedList()?.name ?? "Todo List" | titlecase }}
+        {{ selectedList()?.name ?? "Todo" | titlecase }}
+        <span class="ml-1 text-xl font-medium text-slate-400 align-middle">
+          List
+        </span>
       </h2>
 
       <p class="mt-2 text-sm text-slate-600">
@@ -15,39 +18,9 @@
     <div
       class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm backdrop-blur"
     >
-      <!-- Input row -->
-      <div
-        class="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center"
-      >
-        <div class="relative flex-1">
-          <input
-            type="text"
-            name="title"
-            placeholder="Add a new todo…"
-            required
-            #txtTitle
-            (keyup.enter)="addTodo(txtTitle.value); txtTitle.value = ''"
-            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-          />
-          <div
-            class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400"
-          >
-            ↵
-          </div>
-        </div>
-
-        <button
-          type="button"
-          (click)="addTodo(txtTitle.value); txtTitle.value = ''"
-          class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-indigo-200 cursor-pointer"
-        >
-          Add
-        </button>
-      </div>
-
       <!-- Lists bar -->
       <div
-        class="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+        class="flex flex-col gap-3 border-b border-slate-200 bg-slate-100/70 p-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <!-- Left: Select + delete -->
         <div class="flex items-center gap-2">
@@ -80,27 +53,31 @@
           </button>
         </div>
 
-        <!-- Right: Create list -->
-        <div class="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="New list name…"
-            class="w-full max-w-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-            #newListName
-            (keyup.enter)="
-              createList(newListName.value); newListName.value = ''
-            "
-          />
-
-          <button
-            type="button"
-            class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200 cursor-pointer"
-            (click)="createList(newListName.value); newListName.value = ''"
-          >
-            Create
-          </button>
-        </div>
+        <app-input-bar-with-button
+          placeholder="New list name..."
+          buttonLabel="Create"
+          containerClass="flex items-center gap-2"
+          inputClass="max-w-xs"
+          buttonClass="bg-slate-900 hover:bg-slate-800 focus:ring-slate-200"
+          (submitted)="createList($event)"
+        ></app-input-bar-with-button>
       </div>
+
+      <app-input-bar-with-button
+        placeholder="Add a new todo…"
+        buttonLabel="Add"
+        containerClass="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center"
+        inputClass="pr-10 px-4 py-3 text-sm font-medium"
+        buttonClass="bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-200 px-5 py-3 text-sm font-semibold active:scale-[0.99]"
+        (submitted)="addTodo($event)"
+      >
+        <div
+          suffix
+          class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400 text-sm"
+        >
+          ↵
+        </div>
+      </app-input-bar-with-button>
 
       <!-- Filters -->
       <div

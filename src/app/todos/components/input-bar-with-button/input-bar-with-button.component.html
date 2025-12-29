@@ -1,16 +1,19 @@
-<p>input-bar-with-button works!</p>
-
 <div class="flex items-center gap-2" [class]="containerClass()">
-  <input
-    type="text"
-    [placeholder]="placeholder()"
-    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-    [class]="inputClass()"
-    #txt
-    [value]="value()"
-    (input)="value.set(txt.value)"
-    (keyup.enter)="submit()"
-  />
+  <div class="relative flex-1">
+    <input
+      type="text"
+      [placeholder]="placeholder()"
+      class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+      [class]="inputClass()"
+      #txt
+      [value]="value()"
+      (input)="value.set(txt.value)"
+      (keyup.enter)="submit()"
+    />
+
+    <!-- ✅ Optional projected suffix (e.g., ↵ hint) -->
+    <ng-content select="[suffix]"></ng-content>
+  </div>
 
   <button
     type="button"
