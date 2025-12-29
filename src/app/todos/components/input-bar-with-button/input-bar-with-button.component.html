@@ -1,0 +1,24 @@
+<p>input-bar-with-button works!</p>
+
+<div class="flex items-center gap-2" [class]="containerClass()">
+  <input
+    type="text"
+    [placeholder]="placeholder()"
+    class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+    [class]="inputClass()"
+    #txt
+    [value]="value()"
+    (input)="value.set(txt.value)"
+    (keyup.enter)="submit()"
+  />
+
+  <button
+    type="button"
+    class="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+    [class]="buttonClass()"
+    [disabled]="isDisabled()"
+    (click)="submit()"
+  >
+    {{ buttonLabel() }}
+  </button>
+</div>
