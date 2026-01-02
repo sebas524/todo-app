@@ -1,4 +1,10 @@
-import { Component, inject } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { Priority } from '../interface/todo.interface';
 import { TodoItemComponent } from '../todo-item/todo-item.component';
 import { TodoStoreService } from '../services/todo-store.service';
@@ -22,13 +28,14 @@ export class TodoListComponent {
   readonly selectedListId = this.store.selectedListId;
   readonly selectedList = this.store.selectedList;
 
+  isRenaming = signal(false);
+  renameDraft = signal('');
+
+  renameInput = viewChild<ElementRef<HTMLInputElement>>('renameInput');
+
   selectList(id: string) {
     this.store.selectList(id);
   }
-
-  // createList(name: string) {
-  //   this.store.createList(name);
-  // }
 
   createList(name: string) {
     const id = this.store.createList(name);
@@ -67,4 +74,41 @@ export class TodoListComponent {
   }
 
   confirm = window.confirm.bind(window);
+
+  startRename() {
+    const current = this.selectedList();
+    if (!current) return;
+
+    this.renameDraft.set(current.name);
+    this.isRenaming.set(true);
+
+    setTimeout(() => {
+      const el = this.renameInput()?.nativeElement;
+      if (!el) return;
+
+      el.focus();
+      // place caret at end
+      const len = el.value.length;
+      el.setSelectionRange(len, len);
+    }, 0);
+  }
+
+  saveRename() {
+    const list = this.selectedList();
+    if (!list) return;
+
+    const value = this.renameDraft().trim();
+    if (!value) {
+      this.cancelRename();
+      return;
+    }
+
+    this.store.renameList(list.id, value);
+    this.isRenaming.set(false);
+  }
+
+  cancelRename() {
+    this.isRenaming.set(false);
+    this.renameDraft.set('');
+  }
 }

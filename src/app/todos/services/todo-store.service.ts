@@ -265,4 +265,18 @@ export class TodoStoreService {
     // Optional: reset filter
     this.filter.set('all');
   }
+
+  renameList(id: string, name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    const normalized =
+      trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+
+    this.lists.update((lists) => {
+      return lists.map((list) => {
+        return list.id === id ? { ...list, name: normalized } : list;
+      });
+    });
+  }
 }
