@@ -47,14 +47,20 @@
         </p>
       </div>
 
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200"
-        (click)="logout()"
-      >
-        <span class="text-base leading-none">⎋</span>
-        Logout
-      </button>
+      <div class="flex items-center gap-3">
+        @if (user(); as u) {
+        <span class="text-sm text-slate-600">{{ u.email }}</span>
+        }
+
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200 cursor-pointer"
+          (click)="logout()"
+        >
+          <span class="text-base leading-none">⎋</span>
+          Logout
+        </button>
+      </div>
     </div>
 
     <!-- Card -->
