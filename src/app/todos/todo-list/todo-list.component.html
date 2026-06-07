@@ -1,47 +1,66 @@
 <div class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
   <div class="mx-auto max-w-2xl px-4 py-10">
     <!-- Header -->
-    <div class="mb-6 cursor-default">
-      <!-- VIEW MODE -->
-      @if (!isRenaming()) {
-      <div class="group relative inline-block">
-        <!-- Edit icon: top-left, hover only -->
+
+    <div class="mb-6 flex items-start justify-between gap-4">
+      <div>
+        <!-- your h2 + rename stuff -->
+        <!-- VIEW MODE -->
+        @if (!isRenaming()) {
+        <div class="group relative inline-block">
+          <!-- Edit icon: top-left, hover only -->
+          <button
+            type="button"
+            class="absolute -top-2 -left-6 rounded-md p-1 text-slate-400 opacity-0 transition hover:bg-slate-100 hover:text-slate-700 group-hover:opacity-100 cursor-pointer"
+            aria-label="Rename list"
+            title="Rename list"
+            (click)="startRename()"
+          >
+            ✎
+          </button>
+
+          <h2 class="text-3xl font-bold tracking-tight text-slate-900">
+            {{ selectedList()?.name ?? "Todo" | titlecase }}
+            <span class="ml-1 text-xl font-medium text-slate-400 align-middle">
+              List
+            </span>
+          </h2>
+        </div>
+        }
+
+        <!-- EDIT MODE (small inline input) -->
+        @else {
+        <input
+          #renameInput
+          type="text"
+          class="w-auto max-w-full bg-transparent text-3xl font-bold tracking-tight text-slate-900 caret-indigo-600 outline-none"
+          [value]="renameDraft()"
+          (input)="renameDraft.set(renameInput.value)"
+          (keyup.enter)="saveRename()"
+          (keyup.escape)="cancelRename()"
+        />
+
+        }
+
+        <p class="mt-2 text-sm text-slate-600">
+          Todo App • Keep it simple, keep it moving.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        @if (user(); as u) {
+        <span class="text-sm text-slate-600">{{ u.email }}</span>
+        }
+
         <button
           type="button"
-          class="absolute -top-2 -left-6 rounded-md p-1 text-slate-400 opacity-0 transition hover:bg-slate-100 hover:text-slate-700 group-hover:opacity-100 cursor-pointer"
-          aria-label="Rename list"
-          title="Rename list"
-          (click)="startRename()"
+          class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200 cursor-pointer"
+          (click)="logout()"
         >
-          ✎
+          <span class="text-base leading-none">⎋</span>
+          Logout
         </button>
-
-        <h2 class="text-3xl font-bold tracking-tight text-slate-900">
-          {{ selectedList()?.name ?? "Todo" | titlecase }}
-          <span class="ml-1 text-xl font-medium text-slate-400 align-middle">
-            List
-          </span>
-        </h2>
       </div>
-      }
-
-      <!-- EDIT MODE (small inline input) -->
-      @else {
-      <input
-        #renameInput
-        type="text"
-        class="w-auto max-w-full bg-transparent text-3xl font-bold tracking-tight text-slate-900 caret-indigo-600 outline-none"
-        [value]="renameDraft()"
-        (input)="renameDraft.set(renameInput.value)"
-        (keyup.enter)="saveRename()"
-        (keyup.escape)="cancelRename()"
-      />
-
-      }
-
-      <p class="mt-2 text-sm text-slate-600">
-        Todo App • Keep it simple, keep it moving.
-      </p>
     </div>
 
     <!-- Card -->

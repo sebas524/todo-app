@@ -10,6 +10,9 @@ import { TodoItemComponent } from '../todo-item/todo-item.component';
 import { TodoStoreService } from '../services/todo-store.service';
 import { TitleCasePipe } from '@angular/common';
 import { InputBarWithButtonComponent } from '../components/input-bar-with-button/input-bar-with-button.component';
+import { AuthService } from '../../auth/services/auth.service';
+import { Router } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-todo-list',
@@ -19,6 +22,8 @@ import { InputBarWithButtonComponent } from '../components/input-bar-with-button
 })
 export class TodoListComponent {
   private readonly store = inject(TodoStoreService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly filteredTodos = this.store.filteredTodos;
 
@@ -27,6 +32,10 @@ export class TodoListComponent {
   readonly lists = this.store.lists;
   readonly selectedListId = this.store.selectedListId;
   readonly selectedList = this.store.selectedList;
+
+  readonly user = toSignal(this.auth.user$, { initialValue: null });
+  readonly userEmail = () => this.user()?.email ?? '';
+  readonly isLoggedIn = () => !!this.user();
 
   isRenaming = signal(false);
   renameDraft = signal('');
@@ -110,5 +119,10 @@ export class TodoListComponent {
   cancelRename() {
     this.isRenaming.set(false);
     this.renameDraft.set('');
+  }
+
+  async logout() {
+    await this.auth.logout();
+    await this.router.navigateByUrl('/login');
   }
 }
