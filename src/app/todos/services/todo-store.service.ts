@@ -4,6 +4,12 @@ import { Injectable, computed, effect, signal } from '@angular/core';
 
 export type TodoFilter = 'all' | 'active' | 'done';
 
+export type TodoActionResult<T = unknown> = {
+  ok: boolean;
+  message: string;
+  data?: T;
+};
+
 @Injectable({ providedIn: 'root' })
 export class TodoStoreService {
   private readonly STORAGE_KEY = 'todos_v1';
@@ -153,53 +159,96 @@ export class TodoStoreService {
   }
 
   // ✅ ACTIONS (same as before, now scoped to selected list)
-  addTodo(title: string) {
+  addTodo(title: string): TodoActionResult<Todo> {
     const trimmed = title.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      return { ok: false, message: 'Todo title is required.' };
+    }
 
     const normalized =
       trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 
-    const currentTodos = this.todos();
-
     const id = crypto.randomUUID();
+    const todo: Todo = {
+      id,
+      title: normalized,
+      done: false,
+      completedAt: null,
+      priority: 'medium',
+    };
 
-    this.updateSelectedListTodos((prev) => [
-      ...prev,
-      {
-        id: id,
-        title: normalized,
-        done: false,
-        completedAt: null,
-        priority: 'medium',
-      },
-    ]);
+    this.updateSelectedListTodos((prev) => [...prev, todo]);
+
+    return {
+      ok: true,
+      message: `Todo added: ${todo.title}`,
+      data: todo,
+    };
   }
 
-  removeTodo(id: string) {
+  removeTodo(id: string): TodoActionResult<Todo> {
+    const todo = this.todos().find((t) => t.id === id);
+    if (!todo) {
+      return { ok: false, message: 'Todo not found in the selected list.' };
+    }
+
     this.updateSelectedListTodos((prev) => prev.filter((t) => t.id !== id));
+
+    return {
+      ok: true,
+      message: `Todo removed: ${todo.title}`,
+      data: todo,
+    };
   }
 
-  toggleTodo(id: string) {
+  toggleTodo(id: string): TodoActionResult<Todo> {
+    const todo = this.todos().find((t) => t.id === id);
+    if (!todo) {
+      return { ok: false, message: 'Todo not found in the selected list.' };
+    }
+
+    const nextDone = !todo.done;
+    const updatedTodo: Todo = {
+      ...todo,
+      done: nextDone,
+      completedAt: nextDone ? Date.now() : null,
+    };
+
     this.updateSelectedListTodos((prev) =>
-      prev.map((t) => {
-        if (t.id !== id) return t;
-        const nextDone = !t.done;
-        return {
-          ...t,
-          done: nextDone,
-          completedAt: nextDone ? Date.now() : null,
-        };
-      })
+      prev.map((t) => (t.id === id ? updatedTodo : t))
     );
+
+    return {
+      ok: true,
+      message: `Todo marked as ${updatedTodo.done ? 'done' : 'active'}: ${
+        updatedTodo.title
+      }`,
+      data: updatedTodo,
+    };
   }
 
-  editTodo(payload: { id: string; title: string }) {
+  editTodo(payload: { id: string; title: string }): TodoActionResult<Todo> {
+    const trimmed = payload.title.trim();
+    if (!trimmed) {
+      return { ok: false, message: 'Todo title is required.' };
+    }
+
+    const todo = this.todos().find((t) => t.id === payload.id);
+    if (!todo) {
+      return { ok: false, message: 'Todo not found in the selected list.' };
+    }
+
+    const updatedTodo: Todo = { ...todo, title: trimmed };
+
     this.updateSelectedListTodos((prev) =>
-      prev.map((t) =>
-        t.id === payload.id ? { ...t, title: payload.title } : t
-      )
+      prev.map((t) => (t.id === payload.id ? updatedTodo : t))
     );
+
+    return {
+      ok: true,
+      message: `Todo edited: ${updatedTodo.title}`,
+      data: updatedTodo,
+    };
   }
 
   changePriority(payload: { id: string; priority: Priority }) {
@@ -212,46 +261,65 @@ export class TodoStoreService {
 
   // * lists logic:
 
-  createList(name: string) {
+  createList(name: string): TodoActionResult<TodoList> {
     const trimmed = name.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      return { ok: false, message: 'List name is required.' };
+    }
 
     const normalized =
       trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 
     const id = crypto.randomUUID();
+    const list: TodoList = {
+      id,
+      name: normalized,
+      todos: [],
+    };
 
-    this.lists.update((prev) => [
-      ...prev,
-      {
-        id,
-        name: normalized,
-        todos: [],
-      },
-    ]);
+    this.lists.update((prev) => [...prev, list]);
 
     // ✅ DON'T select here (we'll do it after the DOM updates)
     this.filter.set('all');
 
-    return id;
+    return {
+      ok: true,
+      message: `List created: ${list.name}`,
+      data: list,
+    };
   }
 
-  selectList(id: string) {
+  selectList(id: string): TodoActionResult<TodoList> {
     // only select if it exists
-    const exists = this.lists().some((l) => l.id === id);
-    if (!exists) return;
+    const list = this.lists().find((l) => l.id === id);
+    if (!list) {
+      return { ok: false, message: 'List not found.' };
+    }
 
     this.selectedListId.set(id);
 
     // optional: reset filter when switching lists
     this.filter.set('all');
+
+    return {
+      ok: true,
+      message: `Selected list: ${list.name}`,
+      data: list,
+    };
   }
 
-  deleteList(id: string) {
+  deleteList(id: string): TodoActionResult<TodoList> {
     const lists = this.lists();
+    const deletedList = lists.find((l) => l.id === id);
+
+    if (!deletedList) {
+      return { ok: false, message: 'List not found.' };
+    }
 
     // ❌ Do not allow deleting the last remaining list
-    if (lists.length <= 1) return;
+    if (lists.length <= 1) {
+      return { ok: false, message: 'Cannot delete the final remaining list.' };
+    }
 
     const remaining = lists.filter((l) => l.id !== id);
 
@@ -264,6 +332,12 @@ export class TodoStoreService {
 
     // Optional: reset filter
     this.filter.set('all');
+
+    return {
+      ok: true,
+      message: `List deleted: ${deletedList.name}`,
+      data: deletedList,
+    };
   }
 
   renameList(id: string, name: string) {

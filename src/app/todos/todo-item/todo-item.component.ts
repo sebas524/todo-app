@@ -7,6 +7,10 @@ import {
   viewChild,
 } from '@angular/core';
 import { Priority, Todo } from '../interface/todo.interface';
+import {
+  AgentHighlightTone,
+  AgentTodoHighlightPart,
+} from '../services/agent-activity.service';
 
 @Component({
   selector: 'app-todo-item',
@@ -16,6 +20,9 @@ import { Priority, Todo } from '../interface/todo.interface';
 })
 export class TodoItemComponent {
   todo = input.required<Todo>();
+  highlighted = input(false);
+  highlightPart = input<AgentTodoHighlightPart | null>(null);
+  highlightTone = input<AgentHighlightTone | null>(null);
   editInput = viewChild<ElementRef<HTMLInputElement>>('editInput');
 
   toggled = output<string>();
@@ -25,6 +32,14 @@ export class TodoItemComponent {
 
   isEditing = signal(false);
   draftTitle = '';
+
+  isPartHighlighted(part: AgentTodoHighlightPart) {
+    return this.highlighted() && this.highlightPart() === part;
+  }
+
+  isTone(part: AgentTodoHighlightPart, tone: AgentHighlightTone) {
+    return this.isPartHighlighted(part) && this.highlightTone() === tone;
+  }
 
   onToggle() {
     this.toggled.emit(this.todo()!.id);

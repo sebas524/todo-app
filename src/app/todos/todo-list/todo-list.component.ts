@@ -1,6 +1,8 @@
 import {
   Component,
   ElementRef,
+  OnDestroy,
+  OnInit,
   inject,
   signal,
   viewChild,
@@ -10,6 +12,8 @@ import { TodoItemComponent } from '../todo-item/todo-item.component';
 import { TodoStoreService } from '../services/todo-store.service';
 import { TitleCasePipe } from '@angular/common';
 import { InputBarWithButtonComponent } from '../components/input-bar-with-button/input-bar-with-button.component';
+import { AgentActivityService } from '../services/agent-activity.service';
+import { registerTodoWebMcpTools } from '../web-mcp/todo-web-mcp';
 
 @Component({
   selector: 'app-todo-list',
@@ -17,8 +21,10 @@ import { InputBarWithButtonComponent } from '../components/input-bar-with-button
   templateUrl: './todo-list.component.html',
   styleUrl: './todo-list.component.css',
 })
-export class TodoListComponent {
+export class TodoListComponent implements OnInit, OnDestroy {
   private readonly store = inject(TodoStoreService);
+  readonly agentActivity = inject(AgentActivityService);
+  private unregisterWebMcpTools: (() => void) | null = null;
 
   readonly filteredTodos = this.store.filteredTodos;
 
@@ -33,22 +39,46 @@ export class TodoListComponent {
 
   renameInput = viewChild<ElementRef<HTMLInputElement>>('renameInput');
 
+  ngOnInit() {
+    this.unregisterWebMcpTools = registerTodoWebMcpTools(
+      this.store,
+      this.agentActivity
+    );
+  }
+
+  ngOnDestroy() {
+    this.unregisterWebMcpTools?.();
+  }
+
   selectList(id: string) {
     this.store.selectList(id);
   }
 
   createList(name: string) {
-    const id = this.store.createList(name);
-    if (!id) return;
+    const result = this.store.createList(name);
+    if (!result.ok || !result.data) return;
 
     // ✅ wait one tick so the new <option> exists, then select it
     setTimeout(() => {
-      this.store.selectList(id);
+      this.store.selectList(result.data!.id);
     }, 0);
   }
 
-  deleteList(id: string) {
-    this.store.deleteList(id);
+  async deleteList(id: string) {
+    const list = this.lists().find((item) => item.id === id);
+    if (!list) return;
+
+    const confirmed = await this.agentActivity.requestConfirmation({
+      title: 'Delete list?',
+      message: `Delete "${list.name}" and all of its todos?`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    });
+
+    if (confirmed) {
+      this.store.deleteList(id);
+    }
   }
 
   setFilter(f: 'all' | 'active' | 'done') {
@@ -58,8 +88,21 @@ export class TodoListComponent {
   addTodo(title: string) {
     this.store.addTodo(title);
   }
-  handleRemove(id: string) {
-    this.store.removeTodo(id);
+  async handleRemove(id: string) {
+    const todo = this.filteredTodos().find((item) => item.id === id);
+    if (!todo) return;
+
+    const confirmed = await this.agentActivity.requestConfirmation({
+      title: 'Delete todo?',
+      message: `Delete "${todo.title}" from the selected list?`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    });
+
+    if (confirmed) {
+      this.store.removeTodo(id);
+    }
   }
   handleToggle(id: string) {
     this.store.toggleTodo(id);
@@ -72,8 +115,6 @@ export class TodoListComponent {
   handlePriorityChange(payload: { id: string; priority: Priority }) {
     this.store.changePriority(payload);
   }
-
-  confirm = window.confirm.bind(window);
 
   startRename() {
     const current = this.selectedList();
