@@ -21,7 +21,7 @@
       (change)="onToggle()"
     />
 
-    @if (!isEditing()) {
+    @if (!isDisplayEditing()) {
     <span
       class="rounded-md px-1.5 py-1 text-sm font-medium text-slate-900 transition"
       [class.line-through]="todo().done"
@@ -41,7 +41,20 @@
       #editInput
       type="text"
       class="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-      [value]="draftTitle"
+      [class.ring-2]="agentEditInputHighlighted()"
+      [class.ring-indigo-400]="
+        agentEditInputHighlighted() && agentEditTone() === 'info'
+      "
+      [class.bg-indigo-50]="
+        agentEditInputHighlighted() && agentEditTone() === 'info'
+      "
+      [class.ring-emerald-400]="
+        agentEditInputHighlighted() && agentEditTone() === 'success'
+      "
+      [class.bg-emerald-50]="
+        agentEditInputHighlighted() && agentEditTone() === 'success'
+      "
+      [value]="displayDraftTitle()"
       (input)="draftTitle = editInput.value"
       (keyup.enter)="saveEdit()"
       (keyup.escape)="cancelEdit()"
@@ -75,20 +88,32 @@
       type="button"
       (click)="isEditing() ? saveEdit() : startEdit()"
       class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-200 cursor-pointer"
-      [class.ring-2]="isPartHighlighted('edit')"
-      [class.ring-indigo-400]="isTone('edit', 'info')"
-      [class.bg-indigo-50]="isTone('edit', 'info')"
-      [class.ring-emerald-400]="isTone('edit', 'success')"
-      [class.bg-emerald-50]="isTone('edit', 'success')"
-      [class.ring-red-400]="isTone('edit', 'danger')"
-      [class.bg-red-50]="isTone('edit', 'danger')"
-      [attr.aria-label]="isEditing() ? 'Save todo' : 'Edit todo'"
-      [attr.title]="isEditing() ? 'Save' : 'Edit'"
+      [class.ring-2]="isPartHighlighted('edit') || agentEditButtonHighlighted()"
+      [class.ring-indigo-400]="
+        isTone('edit', 'info') ||
+        (agentEditButtonHighlighted() && agentEditTone() === 'info')
+      "
+      [class.bg-indigo-50]="
+        isTone('edit', 'info') ||
+        (agentEditButtonHighlighted() && agentEditTone() === 'info')
+      "
+      [class.ring-emerald-400]="
+        isTone('edit', 'success') ||
+        (agentEditButtonHighlighted() && agentEditTone() === 'success')
+      "
+      [class.bg-emerald-50]="
+        isTone('edit', 'success') ||
+        (agentEditButtonHighlighted() && agentEditTone() === 'success')
+      "
+      [attr.aria-label]="isEditActionActive() ? 'Save todo' : 'Edit todo'"
+      [attr.title]="isEditActionActive() ? 'Save' : 'Edit'"
     >
       <span class="hidden sm:inline">
-        {{ isEditing() ? "Save" : "Edit" }}
+        {{ isEditActionActive() ? "Save" : "Edit" }}
       </span>
-      <span class="text-base leading-none">{{ isEditing() ? "✓" : "✎" }}</span>
+      <span class="text-base leading-none">{{
+        isEditActionActive() ? "✓" : "✎"
+      }}</span>
     </button>
 
     <button

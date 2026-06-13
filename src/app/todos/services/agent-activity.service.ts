@@ -13,6 +13,18 @@ export type AgentTodoHighlightPart =
   | 'edit'
   | 'remove';
 export type AgentListHighlightPart = 'title' | 'selector';
+export type AgentInputTarget =
+  | { type: 'new-list' }
+  | { type: 'new-todo' }
+  | { type: 'edit-todo'; id: string };
+
+export type AgentInputPlayback = {
+  target: AgentInputTarget;
+  value: string;
+  highlightInput: boolean;
+  highlightButton: boolean;
+  tone: AgentHighlightTone;
+};
 
 export type AgentConfirmationState = {
   title: string;
@@ -27,6 +39,7 @@ export class AgentActivityService {
   readonly snackbarMessage = signal<string | null>(null);
   readonly highlightTarget = signal<AgentHighlightTarget | null>(null);
   readonly confirmation = signal<AgentConfirmationState | null>(null);
+  readonly inputPlayback = signal<AgentInputPlayback | null>(null);
 
   private snackbarTimer: ReturnType<typeof setTimeout> | null = null;
   private highlightTimer: ReturnType<typeof setTimeout> | null = null;
@@ -113,5 +126,53 @@ export class AgentActivityService {
     const resolver = this.confirmationResolver;
     this.confirmationResolver = null;
     resolver?.(confirmed);
+  }
+
+  showInputPlayback(playback: AgentInputPlayback) {
+    this.inputPlayback.set(playback);
+  }
+
+  clearInputPlayback() {
+    this.inputPlayback.set(null);
+  }
+
+  inputValue(target: AgentInputTarget) {
+    const playback = this.inputPlayback();
+    return playback && this.matchesInputTarget(playback.target, target)
+      ? playback.value
+      : null;
+  }
+
+  isInputHighlighted(target: AgentInputTarget) {
+    const playback = this.inputPlayback();
+    return (
+      !!playback &&
+      playback.highlightInput &&
+      this.matchesInputTarget(playback.target, target)
+    );
+  }
+
+  isButtonHighlighted(target: AgentInputTarget) {
+    const playback = this.inputPlayback();
+    return (
+      !!playback &&
+      playback.highlightButton &&
+      this.matchesInputTarget(playback.target, target)
+    );
+  }
+
+  inputTone(target: AgentInputTarget): AgentHighlightTone | null {
+    const playback = this.inputPlayback();
+    if (!playback || !this.matchesInputTarget(playback.target, target)) {
+      return null;
+    }
+
+    return playback.tone;
+  }
+
+  private matchesInputTarget(a: AgentInputTarget, b: AgentInputTarget) {
+    if (a.type !== b.type) return false;
+    if (a.type !== 'edit-todo' || b.type !== 'edit-todo') return true;
+    return a.id === b.id;
   }
 }

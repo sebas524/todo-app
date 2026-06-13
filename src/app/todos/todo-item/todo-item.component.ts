@@ -23,6 +23,10 @@ export class TodoItemComponent {
   highlighted = input(false);
   highlightPart = input<AgentTodoHighlightPart | null>(null);
   highlightTone = input<AgentHighlightTone | null>(null);
+  agentEditValue = input<string | null>(null);
+  agentEditInputHighlighted = input(false);
+  agentEditButtonHighlighted = input(false);
+  agentEditTone = input<AgentHighlightTone | null>(null);
   editInput = viewChild<ElementRef<HTMLInputElement>>('editInput');
 
   toggled = output<string>();
@@ -39,6 +43,18 @@ export class TodoItemComponent {
 
   isTone(part: AgentTodoHighlightPart, tone: AgentHighlightTone) {
     return this.isPartHighlighted(part) && this.highlightTone() === tone;
+  }
+
+  isDisplayEditing() {
+    return this.isEditing() || this.agentEditValue() !== null;
+  }
+
+  displayDraftTitle() {
+    return this.agentEditValue() ?? this.draftTitle;
+  }
+
+  isEditActionActive() {
+    return this.isEditing() || this.agentEditValue() !== null;
   }
 
   onToggle() {

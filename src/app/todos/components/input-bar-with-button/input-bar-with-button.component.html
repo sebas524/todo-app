@@ -5,8 +5,15 @@
       [placeholder]="placeholder()"
       class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
       [class]="inputClass()"
+      [class.ring-2]="agentInputHighlighted()"
+      [class.ring-indigo-400]="agentInputHighlighted() && agentTone() === 'info'"
+      [class.bg-indigo-50]="agentInputHighlighted() && agentTone() === 'info'"
+      [class.ring-emerald-400]="agentInputHighlighted() && agentTone() === 'success'"
+      [class.bg-emerald-50]="agentInputHighlighted() && agentTone() === 'success'"
+      [class.ring-red-400]="agentInputHighlighted() && agentTone() === 'danger'"
+      [class.bg-red-50]="agentInputHighlighted() && agentTone() === 'danger'"
       #txt
-      [value]="value()"
+      [value]="displayValue()"
       (input)="value.set(txt.value)"
       (keyup.enter)="submit()"
     />
@@ -19,6 +26,10 @@
     type="button"
     class="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-4 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
     [class]="buttonClass()"
+    [class.ring-2]="agentButtonHighlighted()"
+    [class.ring-indigo-400]="agentButtonHighlighted() && agentTone() === 'info'"
+    [class.ring-emerald-400]="agentButtonHighlighted() && agentTone() === 'success'"
+    [class.ring-red-400]="agentButtonHighlighted() && agentTone() === 'danger'"
     [disabled]="isDisabled()"
     (click)="submit()"
   >

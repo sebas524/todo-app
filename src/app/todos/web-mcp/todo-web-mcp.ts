@@ -4,6 +4,7 @@ import {
 } from '../services/todo-store.service';
 import {
   AgentActivityService,
+  AgentInputTarget,
   AgentTodoHighlightPart,
 } from '../services/agent-activity.service';
 import { Priority, Todo, TodoList } from '../interface/todo.interface';
@@ -98,11 +99,14 @@ export function registerTodoWebMcpTools(
       },
       ['name'],
     ),
-    execute: (input) => {
+    execute: async (input) => {
       const name = getStringInput(input, 'name');
       if (!name) return failure('List name is required.');
 
+      await playInputCommit(agentActivity, { type: 'new-list' }, name);
+
       const result = store.createList(name);
+      agentActivity.clearInputPlayback();
       if (!result.ok || !result.data) {
         agentActivity.showSnackbar(
           `Agent createList failed: ${result.message}`,
@@ -249,11 +253,14 @@ export function registerTodoWebMcpTools(
       },
       ['title'],
     ),
-    execute: (input) => {
+    execute: async (input) => {
       const title = getStringInput(input, 'title');
       if (!title) return failure('Todo title is required.');
 
+      await playInputCommit(agentActivity, { type: 'new-todo' }, title);
+
       const result = store.addTodo(title);
+      agentActivity.clearInputPlayback();
       if (result.ok && result.data) {
         agentActivity.showSnackbar(
           `Agent addTodo completed: added "${result.data.title}".`,
@@ -333,15 +340,14 @@ export function registerTodoWebMcpTools(
       if (!matchResult.ok || !matchResult.data) return matchResult;
 
       const { todo, list } = matchResult.data;
-      agentActivity.highlight({
-        type: 'todo',
-        id: todo.id,
-        part: 'edit',
-        tone: 'success',
-      });
-      await waitForAgentStep(1400);
+      await playInputCommit(
+        agentActivity,
+        { type: 'edit-todo', id: todo.id },
+        title,
+      );
 
       const result = store.editTodo({ id: todo.id, title });
+      agentActivity.clearInputPlayback();
       if (result.ok && result.data) {
         agentActivity.showSnackbar(
           `Agent editTodo completed: changed "${todo.title}" to "${result.data.title}" in "${list.name}".`,
@@ -734,6 +740,30 @@ function getFirstStringInput(input: unknown, keys: string[]) {
   }
 
   return null;
+}
+
+async function playInputCommit(
+  agentActivity: AgentActivityService,
+  target: AgentInputTarget,
+  value: string,
+) {
+  agentActivity.showInputPlayback({
+    target,
+    value,
+    highlightInput: true,
+    highlightButton: false,
+    tone: 'info',
+  });
+  await waitForAgentStep(1600);
+
+  agentActivity.showInputPlayback({
+    target,
+    value,
+    highlightInput: true,
+    highlightButton: true,
+    tone: 'success',
+  });
+  await waitForAgentStep(1300);
 }
 
 function waitForAgentStep(durationMs = 900) {

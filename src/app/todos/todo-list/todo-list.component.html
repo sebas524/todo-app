@@ -122,6 +122,14 @@
           containerClass="flex items-center gap-2"
           inputClass="max-w-xs"
           buttonClass="bg-slate-900 hover:bg-slate-800 focus:ring-slate-200"
+          [agentValue]="agentActivity.inputValue({ type: 'new-list' })"
+          [agentInputHighlighted]="
+            agentActivity.isInputHighlighted({ type: 'new-list' })
+          "
+          [agentButtonHighlighted]="
+            agentActivity.isButtonHighlighted({ type: 'new-list' })
+          "
+          [agentTone]="agentActivity.inputTone({ type: 'new-list' })"
           (submitted)="createList($event)"
         ></app-input-bar-with-button>
       </div>
@@ -132,6 +140,14 @@
         containerClass="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center"
         inputClass="pr-10 px-4 py-3 text-sm font-medium"
         buttonClass="bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-200 px-5 py-3 text-sm font-semibold active:scale-[0.99]"
+        [agentValue]="agentActivity.inputValue({ type: 'new-todo' })"
+        [agentInputHighlighted]="
+          agentActivity.isInputHighlighted({ type: 'new-todo' })
+        "
+        [agentButtonHighlighted]="
+          agentActivity.isButtonHighlighted({ type: 'new-todo' })
+        "
+        [agentTone]="agentActivity.inputTone({ type: 'new-todo' })"
         (submitted)="addTodo($event)"
       >
         <div
@@ -211,6 +227,24 @@
             [highlighted]="agentActivity.isTodoHighlighted(todo.id)"
             [highlightPart]="agentActivity.todoHighlightPart(todo.id)"
             [highlightTone]="agentActivity.todoHighlightTone(todo.id)"
+            [agentEditValue]="
+              agentActivity.inputValue({ type: 'edit-todo', id: todo.id })
+            "
+            [agentEditInputHighlighted]="
+              agentActivity.isInputHighlighted({
+                type: 'edit-todo',
+                id: todo.id
+              })
+            "
+            [agentEditButtonHighlighted]="
+              agentActivity.isButtonHighlighted({
+                type: 'edit-todo',
+                id: todo.id
+              })
+            "
+            [agentEditTone]="
+              agentActivity.inputTone({ type: 'edit-todo', id: todo.id })
+            "
             (removed)="handleRemove($event)"
             (toggled)="handleToggle($event)"
             (edited)="handleEdit($event)"
