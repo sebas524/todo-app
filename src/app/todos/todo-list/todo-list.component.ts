@@ -64,21 +64,8 @@ export class TodoListComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
-  async deleteList(id: string) {
-    const list = this.lists().find((item) => item.id === id);
-    if (!list) return;
-
-    const confirmed = await this.agentActivity.requestConfirmation({
-      title: 'Delete list?',
-      message: `Delete "${list.name}" and all of its todos?`,
-      confirmLabel: 'Delete',
-      cancelLabel: 'Cancel',
-      destructive: true,
-    });
-
-    if (confirmed) {
-      this.store.deleteList(id);
-    }
+  deleteList(id: string) {
+    this.store.deleteList(id);
   }
 
   setFilter(f: 'all' | 'active' | 'done') {
@@ -88,21 +75,8 @@ export class TodoListComponent implements OnInit, OnDestroy {
   addTodo(title: string) {
     this.store.addTodo(title);
   }
-  async handleRemove(id: string) {
-    const todo = this.filteredTodos().find((item) => item.id === id);
-    if (!todo) return;
-
-    const confirmed = await this.agentActivity.requestConfirmation({
-      title: 'Delete todo?',
-      message: `Delete "${todo.title}" from the selected list?`,
-      confirmLabel: 'Delete',
-      cancelLabel: 'Cancel',
-      destructive: true,
-    });
-
-    if (confirmed) {
-      this.store.removeTodo(id);
-    }
+  handleRemove(id: string) {
+    this.store.removeTodo(id);
   }
   handleToggle(id: string) {
     this.store.toggleTodo(id);
